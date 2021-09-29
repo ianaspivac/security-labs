@@ -27,10 +27,7 @@ def mainParse(readFilename):
     def verifyPreviousLine(prevKeyword, line, tempKeyword, countKeys):
         newTempKeyword = tempKeyword + str(countKeys)
         if len(keywords) > 0:
-            if prevKeyword in line and prevKeyword != "" and not openBracketPrev:
-                parsedFile.write(",{")
-                return countKeys
-            elif closingBracket:
+            if closingBracket:
                 parsedFile.write("," + '"' + newTempKeyword + '"' + ":[{")
             else:
                 parsedFile.write('"' + newTempKeyword + '"' + ":[{")
@@ -59,7 +56,7 @@ def mainParse(readFilename):
         return stripLine[stripLine.find("<") + len("<"):stripLine.find(symbol)]
 
     lines = readFile(openFile)
-    parsedFile = writeFile("text.json")
+    parsedFile = writeFile(readFilename.split(".audit")[0]+".json")
 
     parsedFile.write("{")
 
@@ -84,10 +81,9 @@ def mainParse(readFilename):
             # for case when brackets are on diff lines
         else:
             if closingBracketLine:
-                if keywords[-1] in line and closingBracket:
-                    parsedFile.write("]")
                 closingBracket = True
                 parsedFile.write("}")
+                parsedFile.write("]")
                 prevKeyword = keywords.pop()
                 openBracketPrev = False
             elif openingBracket:
@@ -97,11 +93,9 @@ def mainParse(readFilename):
                     tempKeyword = cutKeyword(stripLine, "_")
                 else:
                     tempKeyword = cutKeyword(stripLine, ">")
-                if prevKeyword not in line and closingBracket:
-                    parsedFile.write("]")
                 countKeys = verifyPreviousLine(prevKeyword, line, tempKeyword, countKeys)
                 closingBracket = False
                 keywords.append(tempKeyword)
                 openBracketPrev = True
-    parsedFile.write("]}")
+    parsedFile.write("}")
     parsedFile.close()

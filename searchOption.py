@@ -1,4 +1,5 @@
 import json
+import pprint
 
 
 def readFile(filename):
@@ -38,7 +39,9 @@ def getpath(d, search_pattern, prev_datapoint_path=''):
 
 
 def search(file, searchKey):
-    with open(file) as json_file:
-        data = json.load(json_file)
-    findListPaths = getpath(data, searchKey)
-    print(data)
+    f = open('text.json', )
+    data = json.load(f)
+    listKeys = getpath(data, searchKey)
+    for keys in listKeys:
+        if "custom_item" in keys or "item" in keys or "report" in keys:
+            print(keys)
