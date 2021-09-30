@@ -1,7 +1,7 @@
 from PyQt6.QtWidgets import (QMainWindow, QTextEdit,
                              QFileDialog, QApplication, QLineEdit, QHBoxLayout, QVBoxLayout, QWidget, QPushButton,
-                             QCheckBox, QGridLayout, QLabel, QScrollArea)
-from PyQt6.QtGui import QIcon, QAction, QShortcut, QKeySequence
+                             QCheckBox, QScrollArea)
+from PyQt6.QtGui import QIcon, QAction
 from pathlib import Path
 
 from parserFile import mainParse, identifyOptionKeywords
