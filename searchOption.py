@@ -38,10 +38,13 @@ def getpath(d, search_pattern, prev_datapoint_path=''):
     return list(output)
 
 
-def search(file, searchKey):
-    f = open('text.json', )
-    data = json.load(f)
-    listKeys = getpath(data, searchKey)
-    for keys in listKeys:
-        if "custom_item" in keys or "item" in keys or "report" in keys:
-            print(keys)
+
+def saveOptions(list):
+    print(list)
+    # arrayString = string.split()
+    #print(arrayString)
+    #custom_item3
+    # listKeys = getpath(data, searchKey)
+    # for keys in listKeys:
+    #     if "custom_item" in keys or "item" in keys or "report" in keys:
+    #         print(keys)

@@ -1,8 +1,14 @@
 import re
 
 
-# file = open("CIS_Ubuntu_12.04_LTS_Server_v1.1.0_L1.audit", "r")
-# file = open("CIS_Ubuntu_20.04_LTS_v1.1.0_Workstation_L2.audit","r")
+def identifyOptionKeywords(string):
+    arrayString = string.split()
+    arrayOptionKeywords = []
+    for word in arrayString:
+        if ("custom_item" in word)  or ('"item' in word):
+            arrayOptionKeywords.append(word[1:-2])
+    return (arrayOptionKeywords)
+
 
 def mainParse(readFilename):
     keywords = []
@@ -56,7 +62,7 @@ def mainParse(readFilename):
         return stripLine[stripLine.find("<") + len("<"):stripLine.find(symbol)]
 
     lines = readFile(openFile)
-    parsedFile = writeFile(readFilename.split(".audit")[0]+".json")
+    parsedFile = writeFile(readFilename.split(".audit")[0] + ".json")
 
     parsedFile.write("{")
 
