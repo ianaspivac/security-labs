@@ -63,9 +63,19 @@ class Example(QMainWindow):
         openFile.setStatusTip('Open new File')
         openFile.triggered.connect(self.showDialog)
 
+        saveFile = QAction(QIcon('open.png'), 'Save', self)
+        saveFile.setShortcut('Ctrl+S')
+        saveFile.setStatusTip('Save current policy json')
+        saveFile.triggered.connect(self.saveDialog)
+
+        saveFile = QAction(QIcon('open.png'), 'Save As', self)
+        saveFile.setStatusTip('Save current selection json')
+        saveFile.triggered.connect(self.saveAsDialog)
+
         menubar = self.menuBar()
         fileMenu = menubar.addMenu('&File')
         fileMenu.addAction(openFile)
+        fileMenu.addAction(saveFile)
 
         self.setGeometry(200, 100, 1000, 500)
         self.setWindowTitle('File dialog')
@@ -84,30 +94,58 @@ class Example(QMainWindow):
             self.textEdit.setText(readParsedFile)
             self.addOptionsSelect()
 
+    def saveDialog(self):
+        home_dir = str(Path.home())
+        name = QFileDialog.getSaveFileName(self, 'Save File', home_dir,"*.json")
+        if name[0]:
+            file = open(name[0], 'w')
+            text = self.textEdit.toPlainText()
+            file.write(text)
+            file.close()
+
+    def saveAsDialog(self):
+        self.listSelectedOptions = []
+        for i, v in enumerate(self.listCheckBox):
+            if v.isChecked():
+                self.listSelectedOptions.append(v.text())
+        fileSave = saveOptions(self.listSelectedOptions,self.textEdit.toPlainText())
+        home_dir = str(Path.home())
+        name = QFileDialog.getSaveFileName(self, 'Save File', home_dir,"*.json")
+        if name[0]:
+            file = open(name[0], 'w')
+            file.write(fileSave)
+            file.close()
+
     def addOptionsSelect(self):
 
         self.listCheckBox = identifyOptionKeywords(self.textEdit.toPlainText())
+
+        self.selectBtn = QPushButton("Select all")
+        self.selectBtn.clicked.connect(self.selectOptions)
+        self.deselectBtn = QPushButton("Deselect all")
+        self.deselectBtn.clicked.connect(self.deselectOptions)
+        self.optionsBox.addWidget(self.selectBtn)
+        self.optionsBox.addWidget(self.deselectBtn)
 
         for i, v in enumerate(self.listCheckBox):
             self.listCheckBox[i] = QCheckBox(v)
             self.optionsBox.addWidget(self.listCheckBox[i])
 
-        self.saveOptionsBtn = QPushButton("Save options")
-        self.saveOptionsBtn.clicked.connect(self.checkboxState)
+        # self.saveOptionsBtn = QPushButton("Save options")
+        # self.saveOptionsBtn.clicked.connect(self.checkboxState)
 
-        self.optionsBox.addWidget(self.saveOptionsBtn)
+        # self.optionsBox.addWidget(self.saveOptionsBtn)
 
-
-    def checkboxState(self):
-        self.listSelectedOptions = []
+    def deselectOptions(self):
         for i, v in enumerate(self.listCheckBox):
-            if v.isChecked():
-                print(self.listCheckBox[i].text())
-                self.listSelectedOptions.append(self.listCheckBox[i])
-        saveOptions(self.listSelectedOptions)
+            self.listCheckBox[i].setChecked(False)
+
+    def selectOptions(self):
+        for i, v in enumerate(self.listCheckBox):
+            self.listCheckBox[i].setChecked(True)
+
 
     def find_word(self):
-        saveOptions(self.textEdit.toPlainText())
         words = self.searchInput.text()
         if not self.textEdit.find(words):
             cursor = self.textEdit.textCursor()

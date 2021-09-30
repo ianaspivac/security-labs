@@ -38,13 +38,16 @@ def getpath(d, search_pattern, prev_datapoint_path=''):
     return list(output)
 
 
-
-def saveOptions(list):
-    print(list)
-    # arrayString = string.split()
-    #print(arrayString)
-    #custom_item3
-    # listKeys = getpath(data, searchKey)
-    # for keys in listKeys:
-    #     if "custom_item" in keys or "item" in keys or "report" in keys:
-    #         print(keys)
+def saveOptions(listKeywords, string):
+    arrayString = string.split()
+    options = []
+    openBracketFlag = False
+    for keyword in listKeywords:
+        openBracketFlag = False
+        for word in arrayString:
+            if keyword+'"' in word or openBracketFlag:
+                options.append(word)
+                openBracketFlag = True
+            if openBracketFlag and "]" == word:
+                break;
+    return ("{"+''.join(options)+"}")
