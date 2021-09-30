@@ -4,12 +4,8 @@ from PyQt6.QtWidgets import (QMainWindow, QTextEdit,
 from PyQt6.QtGui import QIcon, QAction, QShortcut, QKeySequence
 from pathlib import Path
 
-from PyQt6.uic.properties import QtWidgets, QtCore, QtGui
-from PySide6.QtGui import QTextCursor
-
-
 from parserFile import mainParse, identifyOptionKeywords
-from searchOption import saveOptions
+from searchOption import saveOptions,exportOptions
 import sys
 import json
 
@@ -68,14 +64,20 @@ class Example(QMainWindow):
         saveFile.setStatusTip('Save current policy json')
         saveFile.triggered.connect(self.saveDialog)
 
-        saveFile = QAction(QIcon('open.png'), 'Save As', self)
-        saveFile.setStatusTip('Save current selection json')
-        saveFile.triggered.connect(self.saveAsDialog)
+        saveAsFile = QAction(QIcon('open.png'), 'Save As', self)
+        saveAsFile.setStatusTip('Save current selection json')
+        saveAsFile.triggered.connect(self.saveAsDialog)
+
+        exportFile = QAction(QIcon('open.png'), 'Export', self)
+        exportFile.setStatusTip('Export selection as audit')
+        exportFile.triggered.connect(self.exportDialog)
 
         menubar = self.menuBar()
         fileMenu = menubar.addMenu('&File')
         fileMenu.addAction(openFile)
         fileMenu.addAction(saveFile)
+        fileMenu.addAction(saveAsFile)
+        fileMenu.addAction(exportFile)
 
         self.setGeometry(200, 100, 1000, 500)
         self.setWindowTitle('File dialog')
@@ -103,11 +105,18 @@ class Example(QMainWindow):
             file.write(text)
             file.close()
 
+    def exportDialog(self):
+        self.saveCheckbox()
+        fileSave = exportOptions(self.listSelectedOptions, self.textEdit.toPlainText())
+        home_dir = str(Path.home())
+        name = QFileDialog.getSaveFileName(self, 'Export File', home_dir, "*.audit")
+        if name[0]:
+            file = open(name[0], 'w')
+            file.write(fileSave)
+            file.close()
+
     def saveAsDialog(self):
-        self.listSelectedOptions = []
-        for i, v in enumerate(self.listCheckBox):
-            if v.isChecked():
-                self.listSelectedOptions.append(v.text())
+        self.saveCheckbox()
         fileSave = saveOptions(self.listSelectedOptions,self.textEdit.toPlainText())
         home_dir = str(Path.home())
         name = QFileDialog.getSaveFileName(self, 'Save File', home_dir,"*.json")
@@ -115,6 +124,12 @@ class Example(QMainWindow):
             file = open(name[0], 'w')
             file.write(fileSave)
             file.close()
+
+    def saveCheckbox(self):
+        self.listSelectedOptions = []
+        for i, v in enumerate(self.listCheckBox):
+            if v.isChecked():
+                self.listSelectedOptions.append(v.text())
 
     def addOptionsSelect(self):
 
