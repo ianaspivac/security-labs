@@ -1,15 +1,23 @@
+import math
+
 from PyQt6.QtWidgets import (QMainWindow, QTextEdit,
                              QFileDialog, QApplication, QLineEdit, QHBoxLayout, QVBoxLayout, QWidget, QPushButton,
-                             QCheckBox, QScrollArea)
+                             QCheckBox, QScrollArea, QDialogButtonBox, QLabel, QDialog, QMessageBox)
 from PyQt6.QtGui import QIcon, QAction
 from pathlib import Path
 
 from parserFile import mainParse, identifyOptionKeywords
-from searchOption import saveOptions,exportOptions
+from searchOption import saveOptions, exportOptions
+from verifyAudit import verifyAudit
 import sys
 import json
 
 
+class Second(QWidget):
+    def __init__(self):
+        super().__init__()
+
+        self.setWindowTitle('Audit verification')
 
 class Example(QMainWindow):
 
@@ -18,7 +26,9 @@ class Example(QMainWindow):
 
         self.initUI()
 
+
     def initUI(self):
+        self.dialog = Second()
         self.layoutV = QVBoxLayout()
 
         self.searchInput = QLineEdit()
@@ -37,15 +47,13 @@ class Example(QMainWindow):
         self.layoutH.addWidget(self.textEdit)
 
         self.optionsBox = QVBoxLayout()
-        self.widgetOptionsBox= QWidget()
+        self.widgetOptionsBox = QWidget()
         self.widgetOptionsBox.setLayout(self.optionsBox)
         self.scroll = QScrollArea()
         self.layoutH.addWidget(self.scroll)
         self.scroll.setWidget(self.widgetOptionsBox)
         self.scroll.setWidgetResizable(True)
         self.scroll.setFixedHeight(400)
-
-
 
         self.widget = QWidget()
         self.widget.setLayout(self.layoutV)
@@ -74,7 +82,7 @@ class Example(QMainWindow):
 
         verifyFile = QAction(QIcon('open.png'), 'Verify audit', self)
         verifyFile.setStatusTip('Verify audit')
-        verifyFile.triggered.connect(self.verifyAudit)
+        verifyFile.triggered.connect(self.verifyAuditPolicy)
 
         menubar = self.menuBar()
         fileMenu = menubar.addMenu('&File')
@@ -87,7 +95,6 @@ class Example(QMainWindow):
         self.setGeometry(200, 100, 1000, 500)
         self.setWindowTitle('File dialog')
         self.show()
-
 
     def showDialog(self):
         home_dir = str(Path.home())
@@ -103,7 +110,7 @@ class Example(QMainWindow):
 
     def saveDialog(self):
         home_dir = str(Path.home())
-        name = QFileDialog.getSaveFileName(self, 'Save File', home_dir,"*.json")
+        name = QFileDialog.getSaveFileName(self, 'Save File', home_dir, "*.json")
         if name[0]:
             file = open(name[0], 'w')
             text = self.textEdit.toPlainText()
@@ -122,17 +129,32 @@ class Example(QMainWindow):
 
     def saveAsDialog(self):
         self.saveCheckbox()
-        fileSave = saveOptions(self.listSelectedOptions,self.textEdit.toPlainText())
+        fileSave = saveOptions(self.listSelectedOptions, self.textEdit.toPlainText())
         home_dir = str(Path.home())
-        name = QFileDialog.getSaveFileName(self, 'Save File', home_dir,"*.json")
+        name = QFileDialog.getSaveFileName(self, 'Save File', home_dir, "*.json")
         if name[0]:
             file = open(name[0], 'w')
             file.write(fileSave)
             file.close()
 
+    def verifyAuditPolicy(self):
+        self.saveCheckbox()
+        success, fail, countSuccess, countFail = verifyAudit(self.listSelectedOptions, self.textEdit.toPlainText())
+        rate=countSuccess*100/(countSuccess+countFail)
+        layout = QVBoxLayout()
+        self.dialog.labelFail = QLabel(fail)
+        self.dialog.labelSuccess = QLabel(success)
+        self.dialog.labelRate = QLabel("Succesful rate: "+str(math.trunc(rate))+"%")
+        self.dialog.labelFail.setStyleSheet("color: red")
+        self.dialog.labelSuccess.setStyleSheet("color: green")
+        layout.addWidget(self.dialog.labelSuccess)
+        layout.addWidget(self.dialog.labelFail)
+        layout.addWidget(self.dialog.labelRate)
+        self.dialog.setLayout(layout)
+        self.dialog.show()
 
-    def verifyAudit(self):
-        print("verify")
+
+
 
     def saveCheckbox(self):
         self.listSelectedOptions = []
@@ -168,7 +190,6 @@ class Example(QMainWindow):
         for i, v in enumerate(self.listCheckBox):
             self.listCheckBox[i].setChecked(True)
 
-
     def find_word(self):
         words = self.searchInput.text()
         if not self.textEdit.find(words):
@@ -176,6 +197,7 @@ class Example(QMainWindow):
             cursor.setPosition(0)
             self.textEdit.setTextCursor(cursor)
             self.textEdit.find(words)
+
 
 def main():
     app = QApplication(sys.argv)

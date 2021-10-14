@@ -27,8 +27,8 @@ def getRegValue(path, customItem):
 
 
 def verifyAudit(listKeywords, string):
-    resultsValid=[]
-    resultsInvalid=[]
+    resultsValid = []
+    resultsInvalid = []
     customItemsVerify = []
     customItems = json.loads(saveOptions(listKeywords, string))
     for key, customItem in customItems.items():
@@ -48,20 +48,20 @@ def verifyAudit(listKeywords, string):
         path = customItem['path'][5:]
         if customItem['type'] == 'REG_CHECK':
             if customItem['exist'] == getRegExist(path):
-                resultsValid.append(customItem['name'] + "is valid")
+                resultsValid.append(customItem['name'] + " is valid.")
             elif customItem['exist']:
-                resultsInvalid.append(customItem['name'] + " is invalid, the key should exist!")
+                resultsInvalid.append(customItem['name'] + " is invalid, the key should exist.")
             else:
-                resultsInvalid.append(customItem['name'] + " is invalid, the key should NOT exist!")
+                resultsInvalid.append(customItem['name'] + " is invalid, the key should NOT exist.")
         elif customItem['type'] == 'REGISTRY_SETTING':
             regVal = getRegValue(path, customItem)
             if regVal == -1:
                 if customItem['nullNotAllow']:
-                    resultsInvalid.append(customItem['name'] + " must have non null value!")
+                    resultsInvalid.append(customItem['name'] + " must have non null value.")
                 else:
-                    resultsValid.append(customItem['name'] + " is valid!")
-            if regVal == int(customItem['value']):
-                resultsValid.append(customItem['name'] + " is valid!")
+                    resultsValid.append(customItem['name'] + " is valid.")
+            elif regVal == int(customItem['value']):
+                resultsValid.append(customItem['name'] + " is valid.")
             else:
-                resultsInvalid.append(customItem['name'] + " is invalid, value has to be " + customItem['value'])
-    return '\n'.join(resultsValid)
+                resultsInvalid.append(customItem['name'] + " is invalid, value has to be " + customItem['value'] + ".")
+    return '\n'.join(resultsValid), '\n'.join(resultsInvalid), len(resultsValid), len(resultsInvalid)
