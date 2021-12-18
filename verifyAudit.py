@@ -29,6 +29,7 @@ def getRegValue(path, customItem):
 def verifyAudit(listKeywords, string):
     resultsValid = []
     resultsInvalid = []
+    resultsInvalidKeys = {}
     customItemsVerify = []
     customItems = json.loads(saveOptions(listKeywords, string))
     for key, customItem in customItems.items():
@@ -51,17 +52,21 @@ def verifyAudit(listKeywords, string):
                 resultsValid.append(customItem['name'] + " is valid.")
             elif customItem['exist']:
                 resultsInvalid.append(customItem['name'] + " is invalid, the key should exist.")
+                resultsInvalidKeys[customItem['name']] = [-99]
             else:
                 resultsInvalid.append(customItem['name'] + " is invalid, the key should NOT exist.")
+                resultsInvalidKeys[path] = [-99]
         elif customItem['type'] == 'REGISTRY_SETTING':
             regVal = getRegValue(path, customItem)
             if regVal == -1:
                 if customItem['nullNotAllow']:
                     resultsInvalid.append(customItem['name'] + " must have non null value.")
+                    resultsInvalidKeys[customItem['item']] = [path, regVal, int(customItem['value'])]
                 else:
                     resultsValid.append(customItem['name'] + " is valid.")
             elif regVal == int(customItem['value']):
                 resultsValid.append(customItem['name'] + " is valid.")
             else:
                 resultsInvalid.append(customItem['name'] + " is invalid, value has to be " + customItem['value'] + ".")
-    return '\n'.join(resultsValid), '\n'.join(resultsInvalid), len(resultsValid), len(resultsInvalid)
+                resultsInvalidKeys[customItem['item']] = [path, regVal, int(customItem['value'])]
+    return '\n'.join(resultsValid), resultsInvalid, len(resultsValid), len(resultsInvalid), resultsInvalidKeys

@@ -6,6 +6,7 @@ from PyQt6.QtWidgets import (QMainWindow, QTextEdit,
 from PyQt6.QtGui import QIcon, QAction
 from pathlib import Path
 
+from enforceAudit import saveSystemsOptions, rollback
 from parserFile import mainParse, identifyOptionKeywords
 from searchOption import saveOptions, exportOptions
 from verifyAudit import verifyAudit
@@ -19,13 +20,13 @@ class Second(QWidget):
 
         self.setWindowTitle('Audit verification')
 
+
 class Example(QMainWindow):
 
     def __init__(self):
         super().__init__()
 
         self.initUI()
-
 
     def initUI(self):
         self.dialog = Second()
@@ -139,22 +140,50 @@ class Example(QMainWindow):
 
     def verifyAuditPolicy(self):
         self.saveCheckbox()
-        success, fail, countSuccess, countFail = verifyAudit(self.listSelectedOptions, self.textEdit.toPlainText())
-        rate=countSuccess*100/(countSuccess+countFail)
+        success, self.fail, countSuccess, countFail, self.failList = verifyAudit(self.listSelectedOptions,
+                                                                                 self.textEdit.toPlainText())
+        rate = countSuccess * 100 / (countSuccess + countFail)
         layout = QVBoxLayout()
-        self.dialog.labelFail = QLabel(fail)
+
+        for i, v in enumerate(self.fail):
+            self.fail[i] = QCheckBox(v)
+            self.fail[i].setStyleSheet("color: red")
+            layout.addWidget(self.fail[i])
+
         self.dialog.labelSuccess = QLabel(success)
-        self.dialog.labelRate = QLabel("Succesful rate: "+str(math.trunc(rate))+"%")
-        self.dialog.labelFail.setStyleSheet("color: red")
+        self.dialog.labelRate = QLabel("Succesful rate: " + str(math.trunc(rate)) + "%")
         self.dialog.labelSuccess.setStyleSheet("color: green")
+
         layout.addWidget(self.dialog.labelSuccess)
-        layout.addWidget(self.dialog.labelFail)
         layout.addWidget(self.dialog.labelRate)
+
+        self.selectFailBtn = QPushButton("Select all failed")
+        self.selectFailBtn.clicked.connect(self.selectFailOptions)
+        self.deselectFailBtn = QPushButton("Deselect all failed")
+        self.deselectFailBtn.clicked.connect(self.deselectFailOptions)
+        self.enforceBtn = QPushButton("Enforce")
+        self.enforceBtn.clicked.connect(self.enforce)
+        self.rollbackBtn = QPushButton("Rollback")
+        self.rollbackBtn.clicked.connect(self.rollback)
+
+        layout.addWidget(self.selectFailBtn)
+        layout.addWidget(self.deselectFailBtn)
+        layout.addWidget(self.enforceBtn)
+        layout.addWidget(self.rollbackBtn)
+
         self.dialog.setLayout(layout)
         self.dialog.show()
 
+    def enforce(self):
+        self.dictSelectedOptions = {}
+        keys = list(self.failList.keys())
+        for i, v in enumerate(self.fail):
+            if v.isChecked():
+                self.dictSelectedOptions[keys[i]] = self.failList[keys[i]]
+        saveSystemsOptions(self.dictSelectedOptions)
 
-
+    def rollback(self):
+        rollback()
 
     def saveCheckbox(self):
         self.listSelectedOptions = []
@@ -181,6 +210,14 @@ class Example(QMainWindow):
         # self.saveOptionsBtn.clicked.connect(self.checkboxState)
 
         # self.optionsBox.addWidget(self.saveOptionsBtn)
+#TODO: it all fits in one function
+    def deselectFailOptions(self):
+        for i, v in enumerate(self.fail):
+            self.fail[i].setChecked(False)
+
+    def selectFailOptions(self):
+        for i, v in enumerate(self.fail):
+            self.fail[i].setChecked(True)
 
     def deselectOptions(self):
         for i, v in enumerate(self.listCheckBox):
